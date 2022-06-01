@@ -1,0 +1,8 @@
+bread,milk,cereal,chips
+bread,,,chips
+,milk,cereal,chips
+bread,milk,,
+bread,,cereal,
+,milk,cereal,chips
+,milk,cereal,
+bread,milk,cereal,
