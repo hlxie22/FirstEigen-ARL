@@ -31,7 +31,6 @@ for i in range(len(keys_list)):
         itemsets_2[(keys_list[i], keys_list[j])] = 0
 
 
-
 # ************************
 # STEP 2
 
