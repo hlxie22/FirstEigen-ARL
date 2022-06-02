@@ -2,7 +2,7 @@
 # SOURCE 2: https://www.edureka.co/blog/apriori-algorithm/
 
 # ************************
-# STEP 1
+# STEP 1 (DONE)
 
 import numpy as np
 import pandas as pd
@@ -49,11 +49,10 @@ for i in keys_list:
 # (for whichever 'i' it is)
 
 
-
 # ************************
-# STEP 2
+# STEP 2 (DONE)
 
-### TODO
+### TODO (DONE)
 # (sidenote) store graph data as an adjacency list (as opposed to an adjacency matrix)
 # (continuing from above) example:      
 #                3
@@ -77,6 +76,10 @@ for i in keys_list:
 # 1. a: [(b, w)]
 # 2. b: [(a, w)]
 
+IAG = {}
+for key in itemsets_2:
+    IAG[key[0]] = IAG.get(key[0], []) + [(key[1], itemsets_2[key])]
+    IAG[key[1]] = IAG.get(key[1], []) + [(key[0], itemsets_2[key])]
 
 # ************************
 # STEP 3
