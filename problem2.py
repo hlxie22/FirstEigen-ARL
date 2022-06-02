@@ -7,7 +7,7 @@
 import numpy as np
 import pandas as pd
 
-MIN_SUPPORT = 0.7
+MIN_SUPPORT = 0.3
 DATASET_FILE_NAME = 'test2.csv'
 
 # data format: each row is a seperate transaction, and each col is an item (see test2.csv for example)
@@ -30,7 +30,18 @@ for i in range(len(keys_list)):
     for j in range(i+1, len(keys_list)):
         itemsets_2[(keys_list[i], keys_list[j])] = 0
 
-### TODO
+for row in df.values:
+    for key in itemsets_2:
+        if (key[0] in row) and (key[1] in row):
+            itemsets_2[key] += 1
+
+keys_list = list(itemsets_2.keys())
+for i in keys_list:
+    itemsets_2[i] /= df.shape[0]
+    if itemsets_2[i] < MIN_SUPPORT:
+        del itemsets_2[i]
+
+### TODO (DONE)
 # iterate over rows of df
 # for each row check all of the 2-tuples in 'itemsets_2'
 # see if each one is in that row of df
