@@ -81,8 +81,25 @@ for i in keys_list:
 # ************************
 # STEP 3
 
+!pip install pymetis
+import pymetis
+
+n_cuts, membership = pymetis.part_graph(k, adjacency = IAG)
+
+# A few potential issues:
+# It is possible that both Python wrapper candidates do not output the MLKP specifically
+# Potential possibilities for MLKP implementation:
+# 1: Python wrapper, metis or pymetis
+# 2: Directly link METIS, create our own wrapper somehow
+# 3: Directly code the MLKP algorithm on our own: http://glaros.dtc.umn.edu/gkhome/node/107 
+
 # ************************
 # STEP 4
+
+# TODO: Complete rest of implementation
+
+for index, row in df.iterrows():
+
 
 # ************************
 # STEP 5
