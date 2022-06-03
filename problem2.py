@@ -1,8 +1,16 @@
 # SOURCE 1: https://www.youtube.com/watch?v=WGlMlS_Yydk (start @ 8:00)
 # SOURCE 2: https://www.edureka.co/blog/apriori-algorithm/
+# SOURCE 3: https://journalofbigdata.springeropen.com/articles/10.1186/s40537-021-00473-3#Sec9 
+
+# TODO AT END: 
+# 1) Move everything into a function or class
+# 2) Change dataset, minsup, minconf, k (parameter of MLKP), threshold into parameters
+
 
 # ************************
 # STEP 1
+
+# TODO: Implement threshold and alternate direct generation method
 
 import numpy as np
 import pandas as pd
@@ -41,6 +49,23 @@ for i in keys_list:
     if itemsets_2[i] < MIN_SUPPORT:
         del itemsets_2[i]
 
+
+
+# NOTE: An adjustment needs to be made here to accomodate the PyMetis part_graph function. 
+
+
+# 'itemsets_2_modified' replaces each key-value pair (a, b): w of 'itemsets_2' with i : w, where i is some non-negative integer
+# 'reference' contains key-value pairs of the form (a, b) : i, which allow us to access the actual item pairs later
+
+reference = {}
+i = 0
+itemsets_2_modified = {}
+for key in itemsets_2:
+  reference[i] = key
+  itemsets_2_modified[i] = itemsets_2[key]
+  i += 1
+
+
 ### TODO (DONE)
 # iterate over rows of df
 # for each row check all of the 2-tuples in 'itemsets_2'
@@ -77,17 +102,36 @@ for i in keys_list:
 # 1. a: [(b, w)]
 # 2. b: [(a, w)]
 
+# This step is adjusted to operate on 'itemsets_2_modified'
+
+IAG = {}
+for key in itemsets_2_modified:
+    IAG[key[0]] = IAG.get(key[0], []) + [(key[1], itemsets_2_modified[key])]
+    IAG[key[1]] = IAG.get(key[1], []) + [(key[0], itemsets_2_modified[key])]
 
 # ************************
 # STEP 3
 
+# IAG is of the form 
+# {
+#    A: [(B, 3), (C, 2)],
+#    B: [(A, 3), (C, 5)],
+#    C: [(A, 2), (B, 5), (D, 1)],
+#    D: [(C, 1)]
+# }
+# where A, B, C, D are items and the numbers represent support levels.
+
 !pip install pymetis
 import pymetis
 
-n_cuts, membership = pymetis.part_graph(k, adjacency = IAG)
+n_cuts, membership = pymetis.part_graph(3, adjacency = IAG)
+
+# n_cuts is the number of cuts that the algorithm made to edges of the graph. This number is not important
+# membership is represented as something like [2, 1, 1, 0]. In this case, it means that 
 
 # A few potential issues:
-# It is possible that both Python wrapper candidates do not output the MLKP specifically
+# It is possible that both Python wrapper candidates do not output the MLKP specifically, instead a simpler partitioning algorithm that may not be as fast.
+# We may need to come back and re-evaluate this if it becomes a problem. Even if we are not able to use MLKP, in particular, the other METIS partitioning algorithms are all very fast as well. 
 # Potential possibilities for MLKP implementation:
 # 1: Python wrapper, metis or pymetis
 # 2: Directly link METIS, create our own wrapper somehow
@@ -97,6 +141,7 @@ n_cuts, membership = pymetis.part_graph(k, adjacency = IAG)
 # STEP 4
 
 # TODO: Complete rest of implementation
+
 
 for index, row in df.iterrows():
 
