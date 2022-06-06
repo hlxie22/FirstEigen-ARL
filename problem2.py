@@ -17,6 +17,7 @@ import pandas as pd
 
 MIN_SUPPORT = 0.3
 DATASET_FILE_NAME = 'test2.csv'
+NUM_PARTITIONS = 3
 
 # data format: each row is a seperate transaction, and each col is an item (see test2.csv for example)
 df = pd.read_csv(DATASET_FILE_NAME)
@@ -121,10 +122,10 @@ for key in itemsets_2_modified:
 # }
 # where A, B, C, D are items and the numbers represent support levels.
 
-!pip install pymetis
+#!pip install pymetis
 import pymetis
 
-n_cuts, membership = pymetis.part_graph(3, adjacency = IAG)
+n_cuts, membership = pymetis.part_graph(NUM_PARTITIONS, adjacency = IAG)
 
 # n_cuts is the number of cuts that the algorithm made to edges of the graph. This number is not important
 # membership is represented as something like [2, 1, 1, 0]. In this case, it means that 
@@ -142,9 +143,17 @@ n_cuts, membership = pymetis.part_graph(3, adjacency = IAG)
 
 # TODO: Complete rest of implementation
 
+list_partitions = [[] * NUM_PARTITIONS]
+# list_partitions is a list of lists with the 0th list being the 0th cluster and iterrows
+# contains all the nodes in that cluster and so on
+
+for i in range(len(membership)):
+    list_partitions[membership[i]].append(i)
+
 
 for index, row in df.iterrows():
-
+    for i in range(NUM_PARTITIONS):
+        
 
 # ************************
 # STEP 5
