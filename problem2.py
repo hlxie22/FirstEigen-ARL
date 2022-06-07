@@ -56,9 +56,15 @@ for i in keys_list:
 
 
 # 'itemsets_2_modified' replaces each key-value pair (a, b): w of 'itemsets_2' with i : w, where i is some non-negative integer
-# 'reference' contains key-value pairs of the form (a, b) : i, which allow us to access the actual item pairs later
 
+
+# TODO: Mistake in this code. "itemsets_2_modified" should be in the form (i, j) : w, where i and j are distinct non-negative integers.
+# Further, "reference" should be in the form a : i. Possibly change name of "reference" to "integer_to_item"
+
+# 'reference' contains key-value pairs of the form a : i, where a is some item name and i is a non-negative integer. This allows us to transform item names into non-negative integers which is required by later part_graph step. This allow us to access the actual item names later
+      
 reference = {}
+
 i = 0
 itemsets_2_modified = {}
 for key in itemsets_2:
@@ -141,22 +147,44 @@ n_cuts, membership = pymetis.part_graph(NUM_PARTITIONS, adjacency = IAG)
 # ************************
 # STEP 4
 
-# TODO: Complete rest of implementation
+# TODO: 
 
-list_partitions = [[] * NUM_PARTITIONS]
+# Redefined "list_partition" to "IAG_partition" for greater clarity
+
+IAG_partitions = [[] * NUM_PARTITIONS]
 # list_partitions is a list of lists with the 0th list being the 0th cluster and iterrows
 # contains all the nodes in that cluster and so on
 
 for i in range(len(membership)):
-    list_partitions[membership[i]].append(i)
+  i -= 1 # added since the index must go from 0 to NUM_PARTITIONS - 1, inclusive
+  IAG_partitions[membership[i]].append(i)
 
+# Change entries in "IAG_partitions" back to item names for easy comparison in the transaction intersection step
 
-for index, row in df.iterrows():
-    for i in range(NUM_PARTITIONS):
+for i in range(len(IAG_partitions)):
+  i -= 1
+  for j in range(len(partition)):
+    j -= 1
+    k = IAG_partitions[i][j]
+    IAG_partitions[i][j] = reference[k];
+
+dataset_partitions = [[] * NUM_PARTITIONS]
+# dataset_partition is a list of lists with the ith list corresponding to the transactions that intersect with the ith partition in list_partitions
+
+# TODO: Complete the checking here. 
+
+for i in range(NUM_PARTITIONS):
+  i -= 1
+  for index, row in df.iterrows():
+    IAG_partitions[i]
+    dataset_partitions[i]
+      
         
 
 # ************************
 # STEP 5
+
+# Apply apriori or FP-growth to each partition in "dataset_partitions"
 
 # ************************
 # STEP 6
