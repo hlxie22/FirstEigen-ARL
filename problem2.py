@@ -168,18 +168,28 @@ for i in range(len(IAG_partitions)):
     k = IAG_partitions[i][j]
     IAG_partitions[i][j] = reference[k];
 
-dataset_partitions = [[] * NUM_PARTITIONS]
-# dataset_partition is a list of lists with the ith list corresponding to the transactions that intersect with the ith partition in list_partitions
+dataset_partitions = []
+# dataset_partition is a list of lists with the ith list corresponding to a list of transactions that intersect with the ith partition in list_partitions. These intersections will themselves be represented by lists.
 
-# TODO: Complete the checking here. 
+# The output from this step will be a Pandas DataFrame, because I assume this will be the easiest to directly plug into Apriori or FP growth in the next step
+
+# TODO: I'm not sure if this is the best approach. Nesting four for loops together does not seem very efficient. See if there's a better approach.
 
 for i in range(NUM_PARTITIONS):
   i -= 1
+  dataset_partition = []
   for index, row in df.iterrows():
-    IAG_partitions[i]
-    dataset_partitions[i]
-      
-        
+    list = []
+    for item1 in row:
+      for item2 in IAG_partitions[i]:
+        if item1 == item2:
+          list.append[item1]
+          break
+    if len(list) > 2:
+      dataset_partition.append(list)
+  df_i = pd.DataFrame(dataset_partition)
+  if !df_i.empty:
+    dataset_partitions.append(df_i)    
 
 # ************************
 # STEP 5
