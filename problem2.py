@@ -10,7 +10,7 @@
 # ************************
 # STEP 1
 
-# TODO: Implement threshold and alternate direct generation method
+# TODO AT END: Implement threshold and alternate direct generation method (will do this later if necessary)
 
 import numpy as np
 import pandas as pd
@@ -32,13 +32,29 @@ for i in df:
     if itemsets_1[i] < MIN_SUPPORT:
         del itemsets_1[i]
 
+# 'reference' contains key-value pairs of the form a : i, where a is some item name and i is a non-negative integer. This allows us to transform item names into non-negative integers which is required by later part_graph step. This allow us to access the actual item names later
+      
+integer_to_item = {}
+item_to_integer = {}
+
+i = 0
+for item in itemsets_1:
+  integer_to_item[i] = item
+  item_to_integer[item] = i
+  i++
+
+# 'itemsets_2_modified' replaces each key-value pair (a, b): w of 'itemsets_2' with (i, j) : w, where i and j are distinct non-negative integers
+
+  
 # 2 itemsets above the min sup threshold
 itemsets_2 = {}
+itemsets_2_modified = {}
+
 keys_list = list(itemsets_1.keys())
 for i in range(len(keys_list)):
     for j in range(i+1, len(keys_list)):
         itemsets_2[(keys_list[i], keys_list[j])] = 0
-
+      
 for row in df.values:
     for key in itemsets_2:
         if (key[0] in row) and (key[1] in row):
@@ -50,27 +66,13 @@ for i in keys_list:
     if itemsets_2[i] < MIN_SUPPORT:
         del itemsets_2[i]
 
+for key in itemsets_2.keys():
+  itemsets_2_modified[(item_to_integer[key[0]], item_to_integer[key[1]])] = itemsets_2[key]
 
+# TODO (DONE): An adjustment needs to be made here to accomodate the PyMetis part_graph function. 
 
-# NOTE: An adjustment needs to be made here to accomodate the PyMetis part_graph function. 
-
-
-# 'itemsets_2_modified' replaces each key-value pair (a, b): w of 'itemsets_2' with i : w, where i is some non-negative integer
-
-
-# TODO: Mistake in this code. "itemsets_2_modified" should be in the form (i, j) : w, where i and j are distinct non-negative integers.
-# Further, "reference" should be in the form a : i. Possibly change name of "reference" to "integer_to_item"
-
-# 'reference' contains key-value pairs of the form a : i, where a is some item name and i is a non-negative integer. This allows us to transform item names into non-negative integers which is required by later part_graph step. This allow us to access the actual item names later
-      
-reference = {}
-
-i = 0
-itemsets_2_modified = {}
-for key in itemsets_2:
-  reference[i] = key
-  itemsets_2_modified[i] = itemsets_2[key]
-  i += 1
+# TODO (DONE): Mistake in this code. "itemsets_2_modified" should be in the form (i, j) : w, where i and j are distinct non-negative integers.
+# Further, "reference" should be in the form a : i. Possibly change name of "reference" to 
 
 
 ### TODO (DONE)
@@ -147,8 +149,6 @@ n_cuts, membership = pymetis.part_graph(NUM_PARTITIONS, adjacency = IAG)
 # ************************
 # STEP 4
 
-# TODO: 
-
 # Redefined "list_partition" to "IAG_partition" for greater clarity
 
 IAG_partitions = [[] * NUM_PARTITIONS]
@@ -166,10 +166,10 @@ for i in range(len(IAG_partitions)):
   for j in range(len(partition)):
     j -= 1
     k = IAG_partitions[i][j]
-    IAG_partitions[i][j] = reference[k];
+    IAG_partitions[i][j] = integer_to_item[k];
 
 dataset_partitions = []
-# dataset_partition is a list of lists with the ith list corresponding to a list of transactions that intersect with the ith partition in list_partitions. These intersections will themselves be represented by lists.
+# dataset_partition is a list of dataframes with the ith dataframe corresponding to a list of transactions that intersect with the ith partition in list_partitions. These intersections will themselves be represented by lists.
 
 # The output from this step will be a Pandas DataFrame, because I assume this will be the easiest to directly plug into Apriori or FP growth in the next step
 
