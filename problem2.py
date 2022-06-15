@@ -33,7 +33,7 @@ for i in df:
         del itemsets_1[i]
 
 # 'reference' contains key-value pairs of the form a : i, where a is some item name and i is a non-negative integer. This allows us to transform item names into non-negative integers which is required by later part_graph step. This allow us to access the actual item names later
-      
+
 integer_to_item = {}
 item_to_integer = {}
 
@@ -41,7 +41,7 @@ i = 0
 for item in itemsets_1:
   integer_to_item[i] = item
   item_to_integer[item] = i
-  i++
+  i += 1
 
 # 'itemsets_2_modified' replaces each key-value pair (a, b): w of 'itemsets_2' with (i, j) : w, where i and j are distinct non-negative integers
 
@@ -188,7 +188,7 @@ for i in range(NUM_PARTITIONS):
     if len(list) > 2:
       dataset_partition.append(list)
   df_i = pd.DataFrame(dataset_partition)
-  if !df_i.empty:
+  if not df_i.empty:
     dataset_partitions.append(df_i)    
 
 # ************************
