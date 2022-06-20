@@ -15,7 +15,7 @@ from mlxtend.frequent_patterns import fpgrowth
 MIN_SUPPORT = 0.1
 MIN_CONFIDENCE = 0.7
 
-#
+
 # Note: dataset is a Python list of Python lists without any nans or anything like that
 # e.g.: dataset = [['Milk', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
 #           ['Dill', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
