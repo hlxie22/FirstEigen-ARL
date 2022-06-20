@@ -1,3 +1,6 @@
+# SOURCE (FP-Growth): http://rasbt.github.io/mlxtend/user_guide/frequent_patterns/fpgrowth/
+
+
 
 # *******************************
 # STEP 1
@@ -82,8 +85,20 @@ graph = metis.adjlist_to_metis(adjlist)
 # *******************************
 # STEP 3
 
-objval, parts = metis.part_graph(graph)
-print(parts)
+#objval, parts = metis.part_graph(graph)
+#print(parts)
+
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
+print(metis.part_graph(graph)[1])
 # we don't care about objval, we just want parts
 # parts is a list of partition indices corresponding
 # (i.e. (I think) parts = [0, 0, 1, 4, 0, 2, 2, 1, ...] if index1 (the first element of adjlist)

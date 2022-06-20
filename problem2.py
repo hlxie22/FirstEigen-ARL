@@ -45,7 +45,8 @@ for row in df.values:
         if (key[0] in row) and (key[1] in row):
             itemsets_2[key] += 1
 
-for key in itemsets_2:
+keys_list = list(itemsets_2.keys())
+for key in keys_list:
     if itemsets_2[key]/df.shape[0] < MIN_SUPPORT:
         del itemsets_2[key]
 
