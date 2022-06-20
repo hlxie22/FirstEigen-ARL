@@ -33,7 +33,7 @@ for i in df:
         del itemsets_1[i]
 
 # 'reference' contains key-value pairs of the form a : i, where a is some item name and i is a non-negative integer. This allows us to transform item names into non-negative integers which is required by later part_graph step. This allow us to access the actual item names later
-
+      
 integer_to_item = {}
 item_to_integer = {}
 
