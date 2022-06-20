@@ -14,7 +14,6 @@
 
 import numpy as np
 import pandas as pd
-import socket
 
 MIN_SUPPORT = 0.3
 DATASET_FILE_NAME = 'test2.csv'
@@ -29,27 +28,26 @@ for i in df:
     for j in df[i]:
         if j == i:
             itemsets_1[i] += 1
-    itemsets_1[i] /= df.shape[0]
-    if itemsets_1[i] < MIN_SUPPORT:
+    if itemsets_1[i]/df.shape[0] < MIN_SUPPORT:
         del itemsets_1[i]
 
-# 2 itemsets above the min sup threshold
+# 2-itemsets above the min sup threshold
 itemsets_2 = {}
 keys_list = list(itemsets_1.keys())
 for i in range(len(keys_list)):
     for j in range(i+1, len(keys_list)):
         itemsets_2[(keys_list[i], keys_list[j])] = 0
 
+
+# maybe create a set data type for each row so that checking if an element exists will be O(1) vs O(n)
 for row in df.values:
     for key in itemsets_2:
         if (key[0] in row) and (key[1] in row):
             itemsets_2[key] += 1
 
-keys_list = list(itemsets_2.keys())
-for i in keys_list:
-    itemsets_2[i] /= df.shape[0]
-    if itemsets_2[i] < MIN_SUPPORT:
-        del itemsets_2[i]
+for key in itemsets_2:
+    if itemsets_2[key]/df.shape[0] < MIN_SUPPORT:
+        del itemsets_2[key]
 
 
 
@@ -63,7 +61,7 @@ for i in keys_list:
 # Further, "reference" should be in the form a : i. Possibly change name of "reference" to "integer_to_item"
 
 # 'reference' contains key-value pairs of the form a : i, where a is some item name and i is a non-negative integer. This allows us to transform item names into non-negative integers which is required by later part_graph step. This allow us to access the actual item names later
-      
+'''
 reference = {}
 
 i = 0
@@ -72,7 +70,7 @@ for key in itemsets_2:
   reference[i] = key
   itemsets_2_modified[i] = itemsets_2[key]
   i += 1
-
+'''
 
 ### TODO (DONE)
 # iterate over rows of df
@@ -115,7 +113,7 @@ for key in itemsets_2:
 IAG = {}
 for key in itemsets_2_modified:
     IAG[key[0]] = IAG.get(key[0], []).append((key[1], itemsets_2_modified[key]))
-    IAG[key[1]] = IAG.get(key[1], []) + [(key[0], itemsets_2_modified[key])]
+    IAG[key[1]] = IAG.get(key[1], []).append((key[0], itemsets_2_modified[key]))
 
 # ************************
 # STEP 3
