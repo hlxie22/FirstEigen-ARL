@@ -9,36 +9,31 @@
 
 import pandas as pd
 import numpy as np
-from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import fpgrowth
+from mlxtend.frequent_patterns import apriori
 
-MIN_SUPPORT = 0.1
-MIN_CONFIDENCE = 0.7
+FILE_NAME = 'test2.csv'
+MIN_SUP = 0.1
+MIN_CONF = 0.7
 
+def csvToOneHotBoolDF(csv_file_name):
+    df = pd.read_csv(csv_file_name)
+    for col in df:
+        df[col] = df[col].map({col: True})
+    df.fillna(False, inplace=True)
+    return df
 
-# Note: dataset is a Python list of Python lists without any nans or anything like that
-# e.g.: dataset = [['Milk', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
-#           ['Dill', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
-#           ['Milk', 'Apple', 'Kidney Beans', 'Eggs'],
-#           ['Milk', 'Unicorn', 'Corn', 'Kidney Beans', 'Yogurt'],
-#           ['Corn', 'Onion', 'Onion', 'Kidney Beans', 'Ice cream', 'Eggs']]
-
-dataset = [['Milk', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
-           ['Dill', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
-           ['Milk', 'Apple', 'Kidney Beans', 'Eggs'],
-           ['Milk', 'Unicorn', 'Corn', 'Kidney Beans', 'Yogurt'],
-           ['Corn', 'Onion', 'Onion', 'Kidney Beans', 'Ice cream', 'Eggs']]
-
-te = TransactionEncoder()
-te_ary = te.fit(dataset).transform(dataset)
-df = pd.DataFrame(te_ary, columns=te.columns_)
+df = csvToOneHotBoolDF(FILE_NAME)
 
 # Note: now dataset is a pandas DataFrame where each col represents a different item
 # and each value is boolean (True if the item is in that particular transaction (where each transaction is represented by each row) and False otherwise)
 
-variable1 = fpgrowth(df, min_support=MIN_SUPPORT)
-print(variable1)
+freq_itemsets = fpgrowth(df, min_support=MIN_SUP, use_colnames=True)
+frequent_itemsets['length'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
 
+print(freq_itemsets)
+
+'''
 # or alternatively fpgrowth(df, min_support=MIN_SUPPORT, use_colnames=True)
 # to preserve the col names instead of using the col index
 
@@ -84,21 +79,10 @@ graph = metis.adjlist_to_metis(adjlist)
 
 # *******************************
 # STEP 3
+K = 2
+objval, parts = metis.part_graph(graph, nparts=K)
+print(parts)
 
-#objval, parts = metis.part_graph(graph)
-#print(parts)
-
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
-print(metis.part_graph(graph)[1])
 # we don't care about objval, we just want parts
 # parts is a list of partition indices corresponding
 # (i.e. (I think) parts = [0, 0, 1, 4, 0, 2, 2, 1, ...] if index1 (the first element of adjlist)
@@ -111,7 +95,14 @@ print(metis.part_graph(graph)[1])
 # *******************************
 # STEP 4
 
-# I literally don't understand ...
+parts_transformed = [set() for i in range(K)]
+for i in range(len(parts)):
+    parts_transformed[parts[i]].add(i)
+
+# Turn dataset into list of sets (call that new_dataset)
+# Check if each set in new_dataset is a subset of parts_transformed
+
+dataset_partitions = []
 
 # *******************************
 # STEP 5
@@ -126,3 +117,4 @@ print(metis.part_graph(graph)[1])
 # find the union of the results from STEP 5
 
 print('DONE')
+'''
