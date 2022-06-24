@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from mlxtend.frequent_patterns import fpgrowth
 from mlxtend.frequent_patterns import apriori
+from mlxtend.preprocessing import TransactionEncoder
 import metis
 
 #################################
@@ -85,12 +86,46 @@ class SARL:
 
     def step_4(self):
         parts = self.step_3()
+        parts_modified = [set() for i in range(self.num_parts)]
+        dataset_modified = []
+        dataset_partitions = [[] for i in range(self.num_parts)]
+        for i in range(len(parts)):
+            parts_modified[parts[i]].add(i)
+        for i in range(self.df.shape[0]):
+            dataset_modified.append(set(np.arange(self.df.shape[1])[self.df.values[i]]))
+        for i in dataset_modified:
+            for j in range(self.num_parts):
+                if i.issubet(parts_modified[j]):
+                    dataset_partitions[j].append(list(i))
+                    break
+        return dataset_partitions
 
     #################################
     # STEP 5: Mine freq itemsets on each partition using modified Apriori or FP-Growth
 
+    def step_5(self):
+        dataset_partitions = self.step_4()
+        trxn_ncoder = TransactionEncoder()
+        result = []
+        for i in dataset_partitions:
+            trxn_ncoder_arry = trxn_ncoder.fit(i).transform(i)
+            df = pd.DataFrame(trxn_ncoder_arry, columns=trxn_ncoder.columns_)
+            freq_itemsets_trxn_part = fpgrowth(df, min_support=self.min_sup)
+            result.append(freq_itemsets_trxn_part)
+        return result
+
     #################################
     # STEP 6: Find union of results from each partition (STEP 5)
+
+    def step_6(self):
+        result = self.step_5()
+        union = pd.DataFrame()
+        for i in result:
+            union = pd.concat([union, i], ignore_index=True)
+        union['length'] = union['itemsets'].apply(lambda x: len(x))
+        union = union[union['length'] > 2]
+        union.drop('length', axis=1, inplace=True)
+        return union
 
     #################################
     # STEP 7: Generate association rules using Apriori-ap-genrules on freq itemsets (STEP 6)

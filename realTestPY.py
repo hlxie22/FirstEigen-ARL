@@ -5,11 +5,31 @@ from mlxtend.frequent_patterns import apriori
 from mlxtend.preprocessing import TransactionEncoder
 import time
 
-df = pd.read_csv('anomaly.csv')
-df.drop(['CutomerID', 'Customer_Phone','LoanAmount','InterestEarned'], axis=1, inplace=True)
-df.dropna(inplace=True)
+union = pd.DataFrame()
+print(union)
+print()
 
-start = time.time()
-fpgrowth(df, min_support=0.6)
-end = time.time()
-print(end - start)
+clients1 = {'clientFirstName': ['Jon','Maria','Bruce','Lili'],
+            'clientLastName': ['Smith','Lam','Jones','Chang'],
+            'country': ['US','Canada','Italy','China']
+           }
+df1 = pd.DataFrame(clients1, columns= ['clientFirstName', 'clientLastName','country'])
+
+
+
+clients2 = {'clientFirstName': ['Bill','Jack','Elizabeth','Jenny'],
+            'clientLastName': ['Jackson','Green','Gross','Sing'],
+            'country': ['UK','Germany','Brazil','Japan']
+           }
+df2 = pd.DataFrame(clients2, columns= ['clientFirstName', 'clientLastName','country'])
+
+
+
+union = pd.concat([union, df1], ignore_index=True)
+print (union)
+print()
+
+union = pd.concat([union, df2], ignore_index=True)
+print (union)
+print()
+print(union == pd.concat([df1, df2], ignore_index=True))
