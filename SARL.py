@@ -11,10 +11,11 @@ import metis
 #################################
 # GLOBAL CONSTS
 
-FILE_NAME = 'test2.csv'
+FILE_NAME = 'testWithPaperData.csv'
 MIN_SUP = 0.1
-MIN_CONF = 0.7
+#MIN_CONF = 0.7
 NUM_PARTS = 2
+NUM_CUTS = 2
 
 #################################
 # SARL CLASS
@@ -34,7 +35,7 @@ class SARL:
     # GET DATA
 
     def get_data(self, file_name):
-        df = pd.read_csv(file_name)
+        df = pd.read_csv(file_name, dtype=str)
         for col in df:
             df[col] = df[col].map({col: True})
         df.fillna(False, inplace=True)
@@ -48,11 +49,11 @@ class SARL:
         freq_itemsets['length'] = freq_itemsets['itemsets'].apply(lambda x: len(x))
         freq_itemsets = freq_itemsets[freq_itemsets['length'] == 2]
         freq_itemsets.drop('length', axis=1, inplace=True)
-        freq_itemsets['support'] = int(freq_itemsets['support'] * self.df.shape[0])
+        freq_itemsets['support'] = (freq_itemsets['support'] * self.df.shape[0]).astype(int)
         return freq_itemsets
 
     #################################
-    # STEP 2: Construct IAG
+    # STEP 2: Construct IAG (DONE)
 
     def step_2(self):
         freq_itemsets = self.step_1()
@@ -74,7 +75,7 @@ class SARL:
         return iag
 
     #################################
-    # STEP 3: Partition IAG using MLkP
+    # STEP 3: Partition IAG using MLkP (DONE)
 
     def step_3(self):
         iag = self.step_2()
@@ -82,7 +83,7 @@ class SARL:
         return parts
 
     #################################
-    # STEP 4: Partition dataset according to STEP 3
+    # STEP 4: Partition dataset according to STEP 3 (DONE)
 
     def step_4(self):
         parts = self.step_3()
@@ -95,13 +96,13 @@ class SARL:
             dataset_modified.append(set(np.arange(self.df.shape[1])[self.df.values[i]]))
         for i in dataset_modified:
             for j in range(self.num_parts):
-                if i.issubet(parts_modified[j]):
+                if i.issubset(parts_modified[j]):
                     dataset_partitions[j].append(list(i))
                     break
         return dataset_partitions
 
     #################################
-    # STEP 5: Mine freq itemsets on each partition using modified Apriori or FP-Growth
+    # STEP 5: Mine freq itemsets on each partition using modified Apriori or FP-Growth (DONE)
 
     def step_5(self):
         dataset_partitions = self.step_4()
@@ -115,7 +116,7 @@ class SARL:
         return result
 
     #################################
-    # STEP 6: Find union of results from each partition (STEP 5)
+    # STEP 6: Find union of results from each partition (STEP 5) (DONE)
 
     def step_6(self):
         result = self.step_5()
@@ -129,3 +130,15 @@ class SARL:
 
     #################################
     # STEP 7: Generate association rules using Apriori-ap-genrules on freq itemsets (STEP 6)
+
+
+test = SARL(FILE_NAME, MIN_SUP, NUM_PARTS, NUM_CUTS)
+a = test.step_6()
+print()
+print('*'*50)
+print(a)
+#test.step_6()
+print('*'*50)
+print()
+print('DONE')
+print()
