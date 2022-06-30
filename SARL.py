@@ -6,7 +6,9 @@ import numpy as np
 from mlxtend.frequent_patterns import fpgrowth
 from mlxtend.frequent_patterns import apriori
 from mlxtend.preprocessing import TransactionEncoder
+import networkx as nx
 import metis
+import time
 
 #################################
 # GLOBAL CONSTS
@@ -57,21 +59,10 @@ class SARL:
 
     def step_2(self):
         freq_itemsets = self.step_1()
-        nodes = pd.DataFrame(freq_itemsets.pop('itemsets'))
-        nodes[[0, 1]] = pd.DataFrame(nodes['itemsets'].tolist(), index=nodes.index)
-        nodes.drop('itemsets', axis=1, inplace=True)
-        nodes = nodes.values
-        freq_itemsets = freq_itemsets.values
-        num_nodes = np.amax(nodes)
-        adj_list = [[] for i in range(num_nodes)]
-        for node in range(num_nodes):
-            where = np.array(np.where(nodes == node))
-            where[1] = (where[1] + 1) % 2
-            where = where.T
-            for row, col in where:
-                adj_list[node].append((nodes[row][col], freq_itemsets[row][0]))
-            adj_list[node] = tuple(adj_list[node])
-        iag = metis.adjlist_to_metis(adj_list)
+        iag = nx.Graph()
+        for row in freq_itemsets.values:
+            edge = tuple(row[1])
+            iag.add_edge(edge[0], edge[1], weight=row[0])
         return iag
 
     #################################
@@ -133,12 +124,20 @@ class SARL:
 
 
 test = SARL(FILE_NAME, MIN_SUP, NUM_PARTS, NUM_CUTS)
+start = time.time()
 a = test.step_6()
-print()
-print('*'*50)
+end = time.time()
 print(a)
-#test.step_6()
-print('*'*50)
-print()
-print('DONE')
-print()
+print(end-start)
+
+
+
+start = time.time()
+df = pd.read_csv(FILE_NAME, dtype=str)
+for col in df:
+    df[col] = df[col].map({col: True})
+df.fillna(False, inplace=True)
+a = fpgrowth(df, min_support=MIN_SUP)
+end = time.time()
+print(a)
+print(end-start)
