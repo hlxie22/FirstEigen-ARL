@@ -10,7 +10,7 @@
 # ************************
 # STEP 1
 
-# TODO AT END: Implement threshold and alternate direct generation method (will do this later if necessary)
+# TODO: Implement threshold and alternate direct generation method
 
 import numpy as np
 import pandas as pd
@@ -28,52 +28,49 @@ for i in df:
     for j in df[i]:
         if j == i:
             itemsets_1[i] += 1
-    itemsets_1[i] /= df.shape[0]
-    if itemsets_1[i] < MIN_SUPPORT:
+    if itemsets_1[i]/df.shape[0] < MIN_SUPPORT:
         del itemsets_1[i]
 
-# 'reference' contains key-value pairs of the form a : i, where a is some item name and i is a non-negative integer. This allows us to transform item names into non-negative integers which is required by later part_graph step. This allow us to access the actual item names later
-      
-integer_to_item = {}
-item_to_integer = {}
-
-i = 0
-for item in itemsets_1:
-  integer_to_item[i] = item
-  item_to_integer[item] = i
-  i += 1
-
-# 'itemsets_2_modified' replaces each key-value pair (a, b): w of 'itemsets_2' with (i, j) : w, where i and j are distinct non-negative integers
-
-  
-# 2 itemsets above the min sup threshold
+# 2-itemsets above the min sup threshold
 itemsets_2 = {}
-itemsets_2_modified = {}
-
 keys_list = list(itemsets_1.keys())
 for i in range(len(keys_list)):
     for j in range(i+1, len(keys_list)):
         itemsets_2[(keys_list[i], keys_list[j])] = 0
-      
+
+
+# maybe create a set data type for each row so that checking if an element exists will be O(1) vs O(n)
 for row in df.values:
     for key in itemsets_2:
         if (key[0] in row) and (key[1] in row):
             itemsets_2[key] += 1
 
 keys_list = list(itemsets_2.keys())
-for i in keys_list:
-    itemsets_2[i] /= df.shape[0]
-    if itemsets_2[i] < MIN_SUPPORT:
-        del itemsets_2[i]
+for key in keys_list:
+    if itemsets_2[key]/df.shape[0] < MIN_SUPPORT:
+        del itemsets_2[key]
 
-for key in itemsets_2.keys():
-  itemsets_2_modified[(item_to_integer[key[0]], item_to_integer[key[1]])] = itemsets_2[key]
 
-# TODO (DONE): An adjustment needs to be made here to accomodate the PyMetis part_graph function. 
 
-# TODO (DONE): Mistake in this code. "itemsets_2_modified" should be in the form (i, j) : w, where i and j are distinct non-negative integers.
-# Further, "reference" should be in the form a : i. Possibly change name of "reference" to 
+# NOTE: An adjustment needs to be made here to accomodate the PyMetis part_graph function. 
 
+
+# 'itemsets_2_modified' replaces each key-value pair (a, b): w of 'itemsets_2' with i : w, where i is some non-negative integer
+
+
+# TODO: Mistake in this code. "itemsets_2_modified" should be in the form (i, j) : w, where i and j are distinct non-negative integers.
+# Further, "reference" should be in the form a : i. Possibly change name of "reference" to "integer_to_item"
+
+# 'reference' contains key-value pairs of the form a : i, where a is some item name and i is a non-negative integer. This allows us to transform item names into non-negative integers which is required by later part_graph step. This allow us to access the actual item names later
+'''
+reference = {}
+i = 0
+itemsets_2_modified = {}
+for key in itemsets_2:
+  reference[i] = key
+  itemsets_2_modified[i] = itemsets_2[key]
+  i += 1
+'''
 
 ### TODO (DONE)
 # iterate over rows of df
@@ -113,70 +110,27 @@ for key in itemsets_2.keys():
 
 # This step is adjusted to operate on 'itemsets_2_modified'
 
-# TOOD: IAG must be completely changed. We need 3 data structures instead: adjncy, xadj, eweights. All 3 are initialized as lists and should become Numpy arrays. 
-
-
-# IAG is obsolete and incompatible with pymetis part_graph function
-
 IAG = {}
 for key in itemsets_2_modified:
-    IAG[key[0]] = IAG.get(key[0], []) + [(key[1], itemsets_2_modified[key])]
-    IAG[key[1]] = IAG.get(key[1], []) + [(key[0], itemsets_2_modified[key])]
+    IAG[key[0]] = IAG.get(key[0], []).append((key[1], itemsets_2_modified[key]))
+    IAG[key[1]] = IAG.get(key[1], []).append((key[0], itemsets_2_modified[key]))
 
-adjncy = []
-xadj = []
-eweights = []
-
-index = 0
-xadj.append(index)
-
-for i in range(len(IAG.keys())):
-  if i in IAG.keys():
-    xadj.append(index + len(IAG[i]))
-    index += len(IAG[i]) + 1
-    for j in range(len(IAG[i])):
-      j -= 1
-      adjncy.append(IAG[i][j][0])
-      weight = int(IAG[i][j][1] * df.shape[0])
-      eweights.append(weight)
-
-# Pymetis Version:
-
-import ctypes
-
-c_adjncy_type =  ctypes.c_int * len(adjncy)
-c_xadj_type = ctypes.c_int * len(xadj)
-c_eweights_type = ctypes.c_int * len(eweights)
-
-c_adjncy = c_adjncy_type()
-c_xadj = c_xadj_type()
-c_eweights = c_eweights_type()
-
-for i in range(len(adjncy)):
-  c_adjncy[i] = adjncy[i]
-
-for i in range(len(xadj)):
-  c_xadj[i] = xadj[i]
-
-for i in range(len(eweights)):
-  c_eweights[i] = eweights[i]
-      
 # ************************
 # STEP 3
 
 # IAG is of the form 
 # {
-#    0: [(1, 3), (2, 2)],
-#    1: [(0, 3), (2, 5)],
-#    2: [(0, 2), (1, 5), (3, 1)],
-#    3: [(2, 1)]
+#    A: [(B, 3), (C, 2)],
+#    B: [(A, 3), (C, 5)],
+#    C: [(A, 2), (B, 5), (D, 1)],
+#    D: [(C, 1)]
 # }
-# where 0, 1, 2, 3 are items and the numbers represent support levels.
+# where A, B, C, D are items and the numbers represent support levels.
 
 #!pip install pymetis
 import pymetis
 
-n_cuts, membership = pymetis.part_graph(NUM_PARTITIONS, xadj = c_xadj, adjncy = c_adjncy, eweights = c_eweights)
+n_cuts, membership = pymetis.part_graph(NUM_PARTITIONS, adjacency = IAG)
 
 # n_cuts is the number of cuts that the algorithm made to edges of the graph. This number is not important
 # membership is represented as something like [2, 1, 1, 0]. In this case, it means that 
@@ -192,6 +146,8 @@ n_cuts, membership = pymetis.part_graph(NUM_PARTITIONS, xadj = c_xadj, adjncy = 
 # ************************
 # STEP 4
 
+# TODO: 
+
 # Redefined "list_partition" to "IAG_partition" for greater clarity
 
 IAG_partitions = [[] * NUM_PARTITIONS]
@@ -199,23 +155,27 @@ IAG_partitions = [[] * NUM_PARTITIONS]
 # contains all the nodes in that cluster and so on
 
 for i in range(len(membership)):
+  i -= 1 # added since the index must go from 0 to NUM_PARTITIONS - 1, inclusive
   IAG_partitions[membership[i]].append(i)
 
 # Change entries in "IAG_partitions" back to item names for easy comparison in the transaction intersection step
 
 for i in range(len(IAG_partitions)):
+  i -= 1
   for j in range(len(partition)):
+    j -= 1
     k = IAG_partitions[i][j]
-    IAG_partitions[i][j] = integer_to_item[k];
+    IAG_partitions[i][j] = reference[k];
 
 dataset_partitions = []
-# dataset_partition is a list of dataframes with the ith dataframe corresponding to a list of transactions that intersect with the ith partition in list_partitions. These intersections will themselves be represented by lists.
+# dataset_partition is a list of lists with the ith list corresponding to a list of transactions that intersect with the ith partition in list_partitions. These intersections will themselves be represented by lists.
 
 # The output from this step will be a Pandas DataFrame, because I assume this will be the easiest to directly plug into Apriori or FP growth in the next step
 
 # TODO: I'm not sure if this is the best approach. Nesting four for loops together does not seem very efficient. See if there's a better approach.
 
 for i in range(NUM_PARTITIONS):
+  i -= 1
   dataset_partition = []
   for index, row in df.iterrows():
     list = []
@@ -234,6 +194,11 @@ for i in range(NUM_PARTITIONS):
 # STEP 5
 
 # Apply apriori or FP-growth to each partition in "dataset_partitions"
+
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import fpgrowth
+print(dataset_partitions)
+
 
 # ************************
 # STEP 6
