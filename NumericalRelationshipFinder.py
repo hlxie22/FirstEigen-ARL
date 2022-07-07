@@ -78,13 +78,19 @@ for component in connected_components:
 num_models = len(connected_components)
 
     
-# Round the coefficients, because most relationships will likely be simple ones involving integer coefficients
+# TODO: Round the coefficients, because most relationships will likely be simple ones involving integer coefficients. Some other operation might work better as well
+
+# Print output relationships and store final relationships
+
+relationships = []
 
 for i in range(num_models):
-  relationship = 
-  output = "Numerical Relationship #{index}: {relationship}"
-  print(output.format(index = i, relationship = relationship))
-  
-
-# Store final relationships
+  relationship = ""
+  for j in range(len(model_weights[i])):
+    term = "{weight} * {column_name} + ".format(weight = model_weights[i][j], column_name = df[connected_components[i]].columns[j])
+    relationship += term
+  relationship += model_intercepts[i][0] + " = 0"
+  output = "Numerical Relationship #{index}: {relationship}".format(index = i, relationship = relationship)
+  print(output)
+  relationships.append(output)
 
