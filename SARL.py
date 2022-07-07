@@ -6,6 +6,7 @@ import numpy as np
 from mlxtend.frequent_patterns import fpgrowth
 from mlxtend.frequent_patterns import apriori
 from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import association_rules
 import networkx as nx
 import metis
 import time
@@ -15,7 +16,7 @@ import time
 
 FILE_NAME = 'testWithPaperData.csv'
 MIN_SUP = 0.1
-#MIN_CONF = 0.7
+MIN_CONF = 0.7
 NUM_PARTS = 2
 NUM_CUTS = 2
 
@@ -27,9 +28,10 @@ class SARL:
     #################################
     # CONSTRUCTOR
 
-    def __init__(self, file_name, min_sup, num_parts, num_cuts):
+    def __init__(self, file_name, min_sup, min_conf, num_parts, num_cuts):
         self.df = self.get_data(file_name)
         self.min_sup = min_sup
+        self.min_conf = min_conf
         self.num_parts = num_parts
         self.num_cuts = num_cuts
 
@@ -120,18 +122,22 @@ class SARL:
         return union
 
     #################################
-    # STEP 7: Generate association rules using Apriori-ap-genrules on freq itemsets (STEP 6)
+    # STEP 7: Generate association rules using Apriori-ap-genrules on freq itemsets (STEP 6) (DONE)
+    def step_7(self):
+        union = self.step_6()
+        rules = association_rules(union, metric='confidence', min_threshold=self.min_conf)
+        return rules
 
 
-test = SARL(FILE_NAME, MIN_SUP, NUM_PARTS, NUM_CUTS)
+test = SARL(FILE_NAME, MIN_SUP, MIN_CONF, NUM_PARTS, NUM_CUTS)
 start = time.time()
-a = test.step_6()
+a = test.step_7()
 end = time.time()
 print(a)
-print(end-start)
+#print(end-start)
 
 
-
+'''
 start = time.time()
 df = pd.read_csv(FILE_NAME, dtype=str)
 for col in df:
@@ -141,3 +147,4 @@ a = fpgrowth(df, min_support=MIN_SUP)
 end = time.time()
 print(a)
 print(end-start)
+'''
