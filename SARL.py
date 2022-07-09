@@ -29,6 +29,7 @@ class SARL:
     # CONSTRUCTOR
 
     def __init__(self, file_name, min_sup, min_conf, num_parts, num_cuts):
+        self.trxn_ncoder = TransactionEncoder()
         self.df = self.get_data(file_name)
         self.min_sup = min_sup
         self.min_conf = min_conf
@@ -40,9 +41,10 @@ class SARL:
 
     def get_data(self, file_name):
         df = pd.read_csv(file_name, dtype=str)
-        for col in df:
-            df[col] = df[col].map({col: True})
-        df.fillna(False, inplace=True)
+        df.fillna('', inplace=True)
+        df = df.values.tolist()
+        df = self.trxn_ncoder.fit(df).transform(df)
+        df = pd.DataFrame(df)
         return df
 
     #################################
@@ -99,11 +101,10 @@ class SARL:
 
     def step_5(self):
         dataset_partitions = self.step_4()
-        trxn_ncoder = TransactionEncoder()
         result = []
         for i in dataset_partitions:
-            trxn_ncoder_arry = trxn_ncoder.fit(i).transform(i)
-            df = pd.DataFrame(trxn_ncoder_arry, columns=trxn_ncoder.columns_)
+            trxn_ncoder_arry = self.trxn_ncoder.fit(i).transform(i)
+            df = pd.DataFrame(trxn_ncoder_arry, columns=self.trxn_ncoder.columns_)
             freq_itemsets_trxn_part = fpgrowth(df, min_support=self.min_sup)
             result.append(freq_itemsets_trxn_part)
         return result
@@ -130,12 +131,11 @@ class SARL:
 
 
 test = SARL(FILE_NAME, MIN_SUP, MIN_CONF, NUM_PARTS, NUM_CUTS)
-start = time.time()
-a = test.step_7()
-end = time.time()
-print(a)
+#start = time.time()
+a = test.step_6()
+#end = time.time()
 #print(end-start)
-
+print(a)
 
 '''
 start = time.time()
