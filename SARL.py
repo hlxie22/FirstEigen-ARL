@@ -37,11 +37,31 @@ class SARL:
         self.num_cuts = num_cuts
 
     #################################
-    # GET DATA
+    # INTERNAL FUNCTIONS TO MAKE THE LATER STEPS MORE EFFICIENT
 
-    def get_data(self, file_name):
+
+
+    #################################
+    # GET DATA AND PRE-PROCESS
+
+    def num_to_cat(self, file_name):
         df = pd.read_csv(file_name, dtype=str)
         df.fillna('', inplace=True)
+        col_mins = df.min()
+        col_maxs = df.max()
+        cols = list(df.columns)
+        for col in cols:
+            df_col = df[col]
+            if pd.unique(df_col).shape[0] > threshold:
+                df[col + '_length'] = df_col.apply(lambda x: len(x))
+                df[col + '_min'] = col_mins[col]
+                df[col + '_max'] = col_maxs[col]
+                # maybe delete original cols from df
+                # remember to include threshold
+        return df
+
+    def get_data(self, file_name):
+        df = self.num_to_cat(file_name)
         df = df.values.tolist()
         df = self.trxn_ncoder.fit(df).transform(df)
         df = pd.DataFrame(df)
