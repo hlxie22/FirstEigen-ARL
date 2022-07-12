@@ -16,9 +16,9 @@ import time
 
 FILE_NAME = 'testWithPaperData.csv'
 MIN_SUP = 0.1
-MIN_CONF = 0.7
-NUM_PARTS = 2
-NUM_CUTS = 2
+MIN_CONF = 0
+NUM_PARTS = 2 # k for MLkP
+NUM_CUTS = 2 # METIS specific param
 
 #################################
 # SARL CLASS
@@ -44,47 +44,72 @@ class SARL:
     #################################
     # GET DATA AND PRE-PROCESS
 
-    def num_to_cat(self, file_name):
+    def get_cat_and_num_dfs(self, file_name, threshold):
         df = pd.read_csv(file_name, dtype=str)
         df.fillna('', inplace=True)
-        col_mins = df.min()
-        col_maxs = df.max()
-        cols = list(df.columns)
-        for col in cols:
+        num = pd.DataFrame()
+        for col in df:
             df_col = df[col]
             if pd.unique(df_col).shape[0] > threshold:
-                df[col + '_length'] = df_col.apply(lambda x: len(x))
-                df[col + '_min'] = col_mins[col]
-                df[col + '_max'] = col_maxs[col]
+                num[col] = df.pop(col)
+        cat = df
+        return cat, num
+
+    def num_to_cat(self, file_name, threshold):
+        df = self.get_cat_and_num_dfs(file_name, threshold)[1]
+        #col_mins = df.min()
+        #col_maxs = df.max()
+        #cols = list(df.columns)
+        #for col in cols:
+        #    df_col = df[col]
+        #    if pd.unique(df_col).shape[0] > threshold:
+        #        df[col + ' length'] = df_col.apply(lambda x: len(x))
+        #        df[col + ' min'] = col_mins[col]
+        #        df[col + ' max'] = col_maxs[col]
                 # maybe delete original cols from df
                 # remember to include threshold
         return df
 
     def get_data(self, file_name):
-        df = self.num_to_cat(file_name)
+        #df = self.num_to_cat(file_name)
+        df = pd.read_csv(file_name, dtype=str, header=None)
+        df.fillna('', inplace=True)
         df = df.values.tolist()
+        #df = self.trxn_ncoder.fit(df).transform(df, sparse=True)
         df = self.trxn_ncoder.fit(df).transform(df)
-        df = pd.DataFrame(df)
+        #df = pd.DataFrame.sparse.from_spmatrix(df, columns=self.trxn_ncoder.columns_)
+        df = pd.DataFrame(df, columns=self.trxn_ncoder.columns_)
+
+        df.drop('', axis=1, inplace=True)
+
         return df
 
     #################################
     # STEP 1: Find freq 2-itemsets using Apriori (DONE)
 
     def step_1(self):
-        freq_itemsets = apriori(self.df, min_support=self.min_sup)
+        freq_itemsets = apriori(self.df, min_support=self.min_sup, max_len=2)
         freq_itemsets['length'] = freq_itemsets['itemsets'].apply(lambda x: len(x))
-        freq_itemsets = freq_itemsets[freq_itemsets['length'] == 2]
-        freq_itemsets.drop('length', axis=1, inplace=True)
+
+        freq_itemsets_2 = freq_itemsets[freq_itemsets['length'] == 2]
+        freq_itemsets_2.drop('length', axis=1, inplace=True)
+        freq_itemsets_2['support'] = (freq_itemsets_2['support'] * self.df.shape[0]).astype(int)
         freq_itemsets['support'] = (freq_itemsets['support'] * self.df.shape[0]).astype(int)
-        return freq_itemsets
+        freq_itemsets.drop('length', axis=1, inplace=True)
+        self.freq_itemsets = freq_itemsets
+
+
+        return freq_itemsets_2
 
     #################################
     # STEP 2: Construct IAG (DONE)
 
     def step_2(self):
         freq_itemsets = self.step_1()
+        freq_itemsets_values = freq_itemsets.values
+        #num_trxns = self.df.shape[0]
         iag = nx.Graph()
-        for row in freq_itemsets.values:
+        for row in freq_itemsets_values:
             edge = tuple(row[1])
             iag.add_edge(edge[0], edge[1], weight=row[0])
         return iag
@@ -94,7 +119,8 @@ class SARL:
 
     def step_3(self):
         iag = self.step_2()
-        obj_val, parts = metis.part_graph(iag, nparts=self.num_parts, ncuts=self.num_cuts)
+        #obj_val, parts = metis.part_graph(iag, nparts=self.num_parts, ncuts=self.num_cuts)
+        parts = [0,0,0,1,1]
         return parts
 
     #################################
@@ -109,11 +135,19 @@ class SARL:
             parts_modified[parts[i]].add(i)
         for i in range(self.df.shape[0]):
             dataset_modified.append(set(np.arange(self.df.shape[1])[self.df.values[i]]))
+        for i in range(len(dataset_modified)):
+            for j in range(self.num_parts):
+                intersect = parts_modified[j].intersection(dataset_modified[i])
+                if len(intersect) > 2:
+                    dataset_partitions[j].append(intersect)
+
+        '''
         for i in dataset_modified:
             for j in range(self.num_parts):
                 if i.issubset(parts_modified[j]):
                     dataset_partitions[j].append(list(i))
                     break
+        '''
         return dataset_partitions
 
     #################################
@@ -123,9 +157,15 @@ class SARL:
         dataset_partitions = self.step_4()
         result = []
         for i in dataset_partitions:
+            #trxn_ncoder_arry = self.trxn_ncoder.fit(i).transform(i, sparse=True)
             trxn_ncoder_arry = self.trxn_ncoder.fit(i).transform(i)
+            #df = pd.DataFrame.sparse.from_spmatrix(trxn_ncoder_arry, columns=self.trxn_ncoder.columns_)
             df = pd.DataFrame(trxn_ncoder_arry, columns=self.trxn_ncoder.columns_)
             freq_itemsets_trxn_part = fpgrowth(df, min_support=self.min_sup)
+            freq_itemsets_trxn_part['length'] = freq_itemsets_trxn_part['itemsets'].apply(lambda x: len(x))
+            freq_itemsets_trxn_part = freq_itemsets_trxn_part[freq_itemsets_trxn_part['length'] > 2]
+            freq_itemsets_trxn_part.drop('length', axis=1, inplace=True)
+            freq_itemsets_trxn_part['support'] = (freq_itemsets_trxn_part['support'] * len(i)).astype(int)
             result.append(freq_itemsets_trxn_part)
         return result
 
@@ -137,22 +177,26 @@ class SARL:
         union = pd.DataFrame()
         for i in result:
             union = pd.concat([union, i], ignore_index=True)
-        union['length'] = union['itemsets'].apply(lambda x: len(x))
-        union = union[union['length'] > 2]
-        union.drop('length', axis=1, inplace=True)
+        union = pd.concat([union, self.freq_itemsets], ignore_index=True)
+        #union['length'] = union['itemsets'].apply(lambda x: len(x))
+        #union = union[union['length'] > 2]
+        #union.drop('length', axis=1, inplace=True)
+        
+        #union['support'] = (union['support']).astype(float) / self.df.shape[0]
         return union
 
     #################################
     # STEP 7: Generate association rules using Apriori-ap-genrules on freq itemsets (STEP 6) (DONE)
     def step_7(self):
         union = self.step_6()
+        #rules = association_rules(union, metric='confidence', min_threshold=self.min_conf, support_only=True)
         rules = association_rules(union, metric='confidence', min_threshold=self.min_conf)
         return rules
 
 
 test = SARL(FILE_NAME, MIN_SUP, MIN_CONF, NUM_PARTS, NUM_CUTS)
 #start = time.time()
-a = test.step_6()
+a = test.step_7()
 #end = time.time()
 #print(end-start)
 print(a)

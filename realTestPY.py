@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 
-df = pd.DataFrame([[1,2,3],[1,3,3],[2,2,2],[2,4,5]], columns=['a','b','c'])
-print(df)
-print()
-print(df.min())
-print(df.min()['c'])
+
+df = pd.DataFrame([[1,2,3,4.0001],[5,-6,-7.3210]], columns=['a', 'b','c','d'])#,[7,8,'yelp'],['a','b','c']])
+
+print(df.columns)
+for i in df.columns:
+    print(i)
