@@ -67,15 +67,13 @@ class SARL:
 
     def step_1(self):
         freq_itemsets = apriori(self.df, min_support=self.min_sup, max_len=2)
+        freq_itemsets['support'] = (freq_itemsets['support'] * self.df.shape[0]).astype(int)
         freq_itemsets['length'] = freq_itemsets['itemsets'].apply(lambda x: len(x))
 
         freq_itemsets_2 = freq_itemsets[freq_itemsets['length'] == 2]
         freq_itemsets_2.drop('length', axis=1, inplace=True)
-        freq_itemsets_2['support'] = (freq_itemsets_2['support'] * self.df.shape[0]).astype(int)
-        
-        freq_itemsets['support'] = (freq_itemsets['support'] * self.df.shape[0]).astype(int)
+
         freq_itemsets.drop('length', axis=1, inplace=True)
-        
         self.freq_itemsets = freq_itemsets
 
         return freq_itemsets_2
