@@ -9,6 +9,7 @@ from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import association_rules
 import networkx as nx
 import metis
+import pymetis
 import time
 
 #################################
@@ -108,21 +109,31 @@ class SARL:
 
     def step_2(self):
         freq_itemsets = self.step_1()
-        freq_itemsets_values = freq_itemsets.values
-        #num_trxns = self.df.shape[0]
-        iag = nx.Graph()
-        for row in freq_itemsets_values:
-            edge = tuple(row[1])
-            iag.add_edge(edge[0], edge[1], weight=row[0])
-        return iag
+        nodes = pd.DataFrame(freq_itemsets.pop('itemsets'))
+        nodes[[0, 1]] = pd.DataFrame(nodes['itemsets'].tolist(), index=nodes.index)
+        nodes.drop('itemsets', axis=1, inplace=True)
+        nodes = nodes.values
+        freq_itemsets = freq_itemsets.values
+        unique_nodes = np.unique(nodes)
+        adjncy = []
+        xadj = [0]
+        eweights = []
+        for node in unique_nodes:
+            where = np.array(np.where(nodes == node))
+            where[1] = (where[1] + 1) % 2
+            where = where.T
+            for row, col in where:
+                adjncy.append(nodes[row][col]) # maybe change index?
+                eweights.append(freq_itemsets[row][0])
+            xadj.append(xadj[-1] + where.shape[0])
+        return adjncy, xadj, eweights
 
     #################################
     # STEP 3: Partition IAG using MLkP (DONE)
 
     def step_3(self):
-        iag = self.step_2()
-        #obj_val, parts = metis.part_graph(iag, nparts=self.num_parts, ncuts=self.num_cuts)
-        parts = [0,0,0,1,1]
+        adjncy, xadj, eweights = self.step_2()
+        cut_count, parts = pymetis.part_graph(self.num_parts, xadj=xadj, adjncy=adjncy, eweights=eweights)
         return parts
 
     #################################
