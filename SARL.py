@@ -16,7 +16,7 @@ import time
 
 FILE_NAME = 'testWithPaperData.csv'
 MIN_SUP = 0.1
-MIN_CONF = 0
+MIN_CONF = 0.7
 NUM_PARTS = 2 # k for MLkP
 NUM_CUTS = 2 # METIS specific param
 
@@ -94,8 +94,10 @@ class SARL:
         freq_itemsets_2 = freq_itemsets[freq_itemsets['length'] == 2]
         freq_itemsets_2.drop('length', axis=1, inplace=True)
         freq_itemsets_2['support'] = (freq_itemsets_2['support'] * self.df.shape[0]).astype(int)
+        
         freq_itemsets['support'] = (freq_itemsets['support'] * self.df.shape[0]).astype(int)
         freq_itemsets.drop('length', axis=1, inplace=True)
+        
         self.freq_itemsets = freq_itemsets
 
 
