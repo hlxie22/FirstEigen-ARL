@@ -11,7 +11,8 @@ FILE_NAME = 'testWithPaperData.csv'
 CORR_THRESHOLD = 0.7
 MODEL_SCORE_THRESHOLD = 0.7
 
-df_num = df.select_dtypes(include=[np.number])
+df_num = pd.read_csv(FILE_NAME)
+
 df_corr = df_num.corr()
 
 # Create the adjacency matrix
@@ -20,7 +21,7 @@ adjacency_matrix = {}
 
 for col in df_corr.columns:
   adj = []
-  for i in range(len(df_corr[col].size)):
+  for i in range(df_corr[col].size):
     corr = df_corr[col][i]
     if abs(corr) > CORR_THRESHOLD and corr != 1:
       adj.append(df_corr.columns[i])
@@ -40,7 +41,7 @@ for key in adjacency_matrix:
 
 for key in adjacency_matrix:
   if groupings[key] == 0:
-    num_components++
+    num_components += 1
     component = []
     queue = [key]
     while len(queue) > 0:
@@ -62,7 +63,7 @@ model_intercepts = []
 model_scores = []
 
 zeroes = np.array([0])
-zeroes = np.repeat(zeroes, df.shape[0])
+zeroes = np.repeat(zeroes, df_num.shape[0])
 
 lasso = Lasso()
 
@@ -80,6 +81,8 @@ num_models = len(connected_components)
     
 # TODO: Round the coefficients, because most relationships will likely be simple ones involving integer coefficients. Some other operation might work better as well
 
+# TODO: Do we need to store or output the relationships in a different way? 
+
 # Print output relationships and store final relationships
 
 relationships = []
@@ -87,10 +90,11 @@ relationships = []
 for i in range(num_models):
   relationship = ""
   for j in range(len(model_weights[i])):
-    term = "{weight} * {column_name} + ".format(weight = model_weights[i][j], column_name = df[connected_components[i]].columns[j])
+    term = "{weight} * {column_name} + ".format(weight = model_weights[i][j],   column_name = df_num[connected_components[i]].columns[j])
     relationship += term
   relationship += model_intercepts[i][0] + " = 0"
-  output = "Numerical Relationship #{index}: {relationship}".format(index = i, relationship = relationship)
+  score = model_weights[i]
+  output = "Numerical Relationship #{index}: {relationship}; R^2 Score: {score}".format(index = i, relationship = relationship, score = score)
   print(output)
   relationships.append(output)
 
