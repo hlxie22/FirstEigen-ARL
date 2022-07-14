@@ -13,7 +13,7 @@ import pymetis
 #################################
 # GLOBAL CONSTS
 
-FILE_NAME = 'testWithPaperData.csv'
+FILE_NAME = 'TestDataSARL.csv'
 MIN_SUP = 0.1
 MIN_CONF = 0.7
 NUM_PARTS = 2 # k for MLkP
@@ -68,7 +68,7 @@ class SARL:
     def step_1(self):
         freq_itemsets = apriori(self.df, min_support=self.min_sup, max_len=2)
         freq_itemsets['support'] = (freq_itemsets['support'] * self.df.shape[0]).astype(int)
-        freq_itemsets['length'] = freq_itemsets['itemsets'].apply(lambda x: len(x))
+        freq_itemsets['length'] = freq_itemsets['itemsets'].apply(len)
 
         freq_itemsets_2 = freq_itemsets[freq_itemsets['length'] == 2]
         freq_itemsets_2.drop('length', axis=1, inplace=True)
@@ -144,7 +144,7 @@ class SARL:
             df = pd.DataFrame(trxn_ncoder_arry, columns=self.trxn_ncoder.columns_)
             
             freq_itemsets_trxn_part = fpgrowth(df, min_support=self.min_sup)
-            freq_itemsets_trxn_part['length'] = freq_itemsets_trxn_part['itemsets'].apply(lambda x: len(x))
+            freq_itemsets_trxn_part['length'] = freq_itemsets_trxn_part['itemsets'].apply(len)
             freq_itemsets_trxn_part = freq_itemsets_trxn_part[freq_itemsets_trxn_part['length'] > 2]
             freq_itemsets_trxn_part.drop('length', axis=1, inplace=True)
             freq_itemsets_trxn_part['support'] = (freq_itemsets_trxn_part['support'] * len(i)).astype(int)
