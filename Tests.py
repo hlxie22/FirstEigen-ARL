@@ -86,5 +86,6 @@ def test_speed(file_name, threshold, min_sup, min_conf, num_parts, num_trials):
 #################################
 # RUNNING THE TESTS
 
+test_general('anomaly.csv', 7, 0.1, 0.7, 2)
 #test_general('CatTestDataSARL.csv', 7, 0.1, 0.7, 3)
-test_speed('CatTestDataSARL.csv', 7, 0.1, 0.7, 3, 1000)
+#test_speed('CatTestDataSARL.csv', 7, 0.1, 0.7, 3, 1000)
