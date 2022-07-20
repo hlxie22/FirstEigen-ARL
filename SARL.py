@@ -19,6 +19,9 @@ class SARL:
 
     def __init__(self, df, min_sup, min_conf, num_parts):
         self.df = df
+
+        self.df.drop('nan', axis=1, inplace=True) # remove this line
+
         self.min_sup = min_sup
         self.min_conf = min_conf
         self.num_parts = num_parts
@@ -32,6 +35,7 @@ class SARL:
         freq_itemsets_1_2['length'] = freq_itemsets_1_2['itemsets'].apply(len)
 
         freq_itemsets_2 = freq_itemsets_1_2[freq_itemsets_1_2['length'] == 2]
+
         freq_itemsets_2.drop('length', axis=1, inplace=True)
 
         freq_itemsets_1_2.drop('length', axis=1, inplace=True)
@@ -107,8 +111,11 @@ class SARL:
             df = pd.DataFrame(trxn_ncoder_arry, columns=trxn_ncoder.columns_)
 
             freq_itemsets_trxn_part = fpgrowth(df, min_support=self.min_sup)
+
             freq_itemsets_trxn_part['length'] = freq_itemsets_trxn_part['itemsets'].apply(len)
+            
             freq_itemsets_trxn_part = freq_itemsets_trxn_part[freq_itemsets_trxn_part['length'] > 2]
+
             freq_itemsets_trxn_part.drop('length', axis=1, inplace=True)
             freq_itemsets_trxn_part['support'] = (freq_itemsets_trxn_part['support'] * len(i)).astype(int)
             result.append(freq_itemsets_trxn_part)
@@ -129,5 +136,8 @@ class SARL:
     # STEP 7: Generate association rules using Apriori-ap-genrules on freq itemsets (STEP 6) (DONE)
     def step_7(self):
         union = self.step_6()
+        
+        #rules = association_rules(union, metric='confidence', min_threshold=self.min_conf, support_only=True)
         rules = association_rules(union, metric='confidence', min_threshold=self.min_conf)
+        
         return rules

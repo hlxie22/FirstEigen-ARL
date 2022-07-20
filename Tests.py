@@ -14,7 +14,7 @@ import time
 def test_general(file_name, threshold, min_sup, min_conf, num_parts):
 
     DP = DataProcessor(file_name)
-    df = DP.get_SARL_data(threshold)
+    df, col_names = DP.get_SARL_data(threshold)
 
     start = time.time()
 
@@ -22,6 +22,8 @@ def test_general(file_name, threshold, min_sup, min_conf, num_parts):
     rules_1 = sarl.step_7()
 
     end = time.time()
+
+    rules_1[['antecedents', 'consequents']] = rules_1[['antecedents', 'consequents']].applymap(lambda x: tuple(col_names[i] for i in tuple(x)))
 
     print('-' * 65, 'SARL RESULTS', '-' * 65)
     print(rules_1)
@@ -36,6 +38,8 @@ def test_general(file_name, threshold, min_sup, min_conf, num_parts):
 
     end = time.time()
 
+    rules_2[['antecedents', 'consequents']] = rules_2[['antecedents', 'consequents']].applymap(lambda x: tuple(col_names[i] for i in tuple(x)))
+
     print('-' * 65, 'FP-GROWTH RESULTS', '-' * 65)
     print(rules_2)
     print(f'time: {end - start}')
@@ -43,13 +47,14 @@ def test_general(file_name, threshold, min_sup, min_conf, num_parts):
     print('-' * 65, 'INTERSECTION', '-' * 65)
 
     print(pd.merge(rules_1, rules_2, how='inner', on=['antecedents', 'consequents']))
+    print(col_names)
 
 
 
 def test_speed(file_name, threshold, min_sup, min_conf, num_parts, num_trials):
 
     DP = DataProcessor(file_name)
-    df = DP.get_SARL_data(threshold)
+    df, col_names = DP.get_SARL_data(threshold)
 
     running_sum = 0
 
@@ -86,6 +91,9 @@ def test_speed(file_name, threshold, min_sup, min_conf, num_parts, num_trials):
 #################################
 # RUNNING THE TESTS
 
-test_general('anomaly.csv', 7, 0.1, 0.7, 2)
-#test_general('CatTestDataSARL.csv', 7, 0.1, 0.7, 3)
-#test_speed('CatTestDataSARL.csv', 7, 0.1, 0.7, 3, 1000)
+#test_general('anomaly2.csv', 10, 0.1, 0.7, 2)
+
+test_general('CatTestDataSARL.csv', 10, 0.1, 0.7, 2)
+#test_speed('CatTestDataSARL.csv', 7, 0.1, 0.7, 3, 100)
+
+#DP = DataProcessor('anomaly2.csv')

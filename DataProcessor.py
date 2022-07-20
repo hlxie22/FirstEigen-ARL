@@ -14,6 +14,8 @@ class DataProcessor:
 
     def __init__(self, file_name):
         df = pd.read_csv(file_name, header=None, parse_dates=True, infer_datetime_format=True)
+        #df = df.iloc[list(range(2000)), list(range(3))]
+        print(df)
 
         self.cat = df.select_dtypes(include='object')
         self.date = df.select_dtypes(include='datetime')
@@ -46,4 +48,4 @@ class DataProcessor:
         #df = pd.DataFrame.sparse.from_spmatrix(df, columns=trxn_ncoder.columns_)
         df = pd.DataFrame(df, columns=trxn_ncoder.columns_)
 
-        return df
+        return df, trxn_ncoder.columns_
