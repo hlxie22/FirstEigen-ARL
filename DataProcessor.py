@@ -12,12 +12,11 @@ class DataProcessor:
     #################################
     # CONSTRUCTOR
 
-    def __init__(self, file_name):
-        df = pd.read_csv(file_name, header=None, parse_dates=True, infer_datetime_format=True)
-        #df = df.iloc[list(range(2000)), list(range(3))]
-        print(df)
+    def __init__(self, file_name, first_n_rows, cols):
+        df = pd.read_csv(file_name, parse_dates=True, infer_datetime_format=True, nrows=first_n_rows, usecols=cols)
+        df = df.convert_dtypes()
 
-        self.cat = df.select_dtypes(include='object')
+        self.cat = df.select_dtypes(include='string')
         self.date = df.select_dtypes(include='datetime')
         self.num = df.select_dtypes(include='number')
 
@@ -28,7 +27,8 @@ class DataProcessor:
         self.num = self.num.astype(str)
         for col in self.num:
             if pd.unique(self.num[col]).shape[0] > threshold:
-                self.num[f'{col} length'] = self.num[col].apply(len)
+                len_col = self.num[col].apply(lambda x: f'{col}_length: {len(x)}')
+                self.num[f'{col} length'] = len_col
                 # add whatever other metadata cols here
                 #self.num.drop[col] # maybe drop the cols with metadata?
 

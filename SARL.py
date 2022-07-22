@@ -20,7 +20,7 @@ class SARL:
     def __init__(self, df, min_sup, min_conf, num_parts):
         self.df = df
 
-        self.df.drop('nan', axis=1, inplace=True) # remove this line
+        self.df.drop('<NA>', axis=1, inplace=True) # delete this line
 
         self.min_sup = min_sup
         self.min_conf = min_conf
@@ -136,8 +136,8 @@ class SARL:
     # STEP 7: Generate association rules using Apriori-ap-genrules on freq itemsets (STEP 6) (DONE)
     def step_7(self):
         union = self.step_6()
-        
+
         #rules = association_rules(union, metric='confidence', min_threshold=self.min_conf, support_only=True)
         rules = association_rules(union, metric='confidence', min_threshold=self.min_conf)
-        
+
         return rules

@@ -11,9 +11,9 @@ import time
 #################################
 # FUNCITON FOR TESTING
 
-def test_general(file_name, threshold, min_sup, min_conf, num_parts):
+def test_general(file_name, first_n_rows, cols, threshold, min_sup, min_conf, num_parts):
 
-    DP = DataProcessor(file_name)
+    DP = DataProcessor(file_name, first_n_rows, cols)
     df, col_names = DP.get_SARL_data(threshold)
 
     start = time.time()
@@ -44,16 +44,16 @@ def test_general(file_name, threshold, min_sup, min_conf, num_parts):
     print(rules_2)
     print(f'time: {end - start}')
 
-    print('-' * 65, 'INTERSECTION', '-' * 65)
+    #print('-' * 65, 'INTERSECTION', '-' * 65)
 
-    print(pd.merge(rules_1, rules_2, how='inner', on=['antecedents', 'consequents']))
-    print(col_names)
+    #print(pd.merge(rules_1, rules_2, how='inner', on=['antecedents', 'consequents']))
+    #print(col_names)
 
 
 
-def test_speed(file_name, threshold, min_sup, min_conf, num_parts, num_trials):
+def test_speed(file_name, first_n_rows, cols, threshold, min_sup, min_conf, num_parts, num_trials):
 
-    DP = DataProcessor(file_name)
+    DP = DataProcessor(file_name, first_n_rows, cols)
     df, col_names = DP.get_SARL_data(threshold)
 
     running_sum = 0
@@ -91,9 +91,7 @@ def test_speed(file_name, threshold, min_sup, min_conf, num_parts, num_trials):
 #################################
 # RUNNING THE TESTS
 
-#test_general('anomaly2.csv', 10, 0.1, 0.7, 2)
+test_general('anomaly.csv', 2000, [2,3,4,5,6,7,8], 20, 0.3, 0.9, 4) # 11, 12, 13
 
-test_general('CatTestDataSARL.csv', 10, 0.1, 0.7, 2)
+#test_general('CatTestDataSARL.csv', 10, 0.1, 0.7, 2)
 #test_speed('CatTestDataSARL.csv', 7, 0.1, 0.7, 3, 100)
-
-#DP = DataProcessor('anomaly2.csv')
